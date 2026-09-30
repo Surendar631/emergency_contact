@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: contacts
+    description: Emergency contact management operations
 paths:
   /healthz:
     get:
@@ -24,7 +26,139 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /contacts:
+    get:
+      operationId: listContacts
+      tags: [contacts]
+      summary: List emergency contacts
+      description: Returns all emergency contacts, optionally filtered by a search term.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            default: ""
+      responses:
+        "200":
+          description: Contact list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmergencyContact"
+    post:
+      operationId: createContact
+      tags: [contacts]
+      summary: Add an emergency contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmergencyContactInput"
+      responses:
+        "201":
+          description: Created contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyContact"
+        "400":
+          description: Invalid contact data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /contacts/summary:
+    get:
+      operationId: getContactSummary
+      tags: [contacts]
+      summary: Get contact summary
+      description: Returns the total contact count and relationship breakdown.
+      responses:
+        "200":
+          description: Contact summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactSummary"
+  /contacts/{id}:
+    get:
+      operationId: getContact
+      tags: [contacts]
+      summary: Get one emergency contact
+      parameters:
+        - $ref: "#/components/parameters/ContactId"
+      responses:
+        "200":
+          description: Contact details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyContact"
+        "404":
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateContact
+      tags: [contacts]
+      summary: Edit an emergency contact
+      parameters:
+        - $ref: "#/components/parameters/ContactId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmergencyContactInput"
+      responses:
+        "200":
+          description: Updated contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyContact"
+        "400":
+          description: Invalid contact data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteContact
+      tags: [contacts]
+      summary: Delete an emergency contact
+      parameters:
+        - $ref: "#/components/parameters/ContactId"
+      responses:
+        "204":
+          description: Contact deleted
+        "404":
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
+  parameters:
+    ContactId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +167,84 @@ components:
           type: string
       required:
         - status
+    EmergencyContact:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        relationship:
+          type: string
+        address:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - phoneNumber
+        - relationship
+        - address
+        - createdAt
+        - updatedAt
+    EmergencyContactInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phoneNumber:
+          type: string
+          minLength: 3
+          maxLength: 40
+        relationship:
+          type: string
+          minLength: 1
+          maxLength: 80
+        address:
+          type: string
+          minLength: 1
+          maxLength: 300
+      required:
+        - name
+        - phoneNumber
+        - relationship
+        - address
+    ContactSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        relationships:
+          type: array
+          items:
+            $ref: "#/components/schemas/RelationshipCount"
+      required:
+        - total
+        - relationships
+    RelationshipCount:
+      type: object
+      properties:
+        relationship:
+          type: string
+        count:
+          type: integer
+      required:
+        - relationship
+        - count
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
 

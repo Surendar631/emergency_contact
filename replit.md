@@ -1,15 +1,16 @@
-# [Project name]
+# Emergency Contact Manager
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Care Circle is a simple emergency contact manager for saving, finding, editing, and removing the people you would call first.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server
+- `pnpm --filter @workspace/emergency-contact-manager run dev` — run the web app
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — PostgreSQL connection string
 
 ## Stack
 
@@ -18,27 +19,40 @@ _Replace the heading above with the project's name, and this line with one sente
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Frontend: React + Vite + Wouter + TanStack Query
+- Build: esbuild (API bundle) and Vite (frontend bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/emergency-contact-manager/` — web app pages, shell, contact form, and theme
+- `artifacts/api-server/src/routes/contacts.ts` — contact CRUD, search, and summary endpoints
+- `lib/api-spec/openapi.yaml` — source of truth for the contact API
+- `lib/db/src/schema/contacts.ts` — PostgreSQL table and insert model
+- `lib/api-client-react/src/generated/` — generated React Query client
+- `lib/api-zod/src/generated/` — generated request and response validators
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The app uses the existing shared API service and PostgreSQL database so the frontend and backend remain separate and easy to follow.
+- OpenAPI is the source of truth; client hooks and server validators are regenerated instead of hand-maintained.
+- Search is performed server-side across name, phone number, relationship, and address.
+- The home page uses a read-only summary endpoint so the overview reflects real stored data.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- View a calm overview of the emergency contact circle and relationship counts.
+- Search contacts by name, phone number, relationship, or address.
+- Add, edit, and delete contacts with validation and confirmation feedback.
+- Persist contact data in PostgreSQL so changes survive reloads.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Keep the project easy to run and understand for a college-project audience.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Run API codegen after changing `lib/api-spec/openapi.yaml`.
+- Restart both managed artifact workflows after backend or frontend changes.
 
 ## Pointers
 
